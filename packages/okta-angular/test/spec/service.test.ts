@@ -1,10 +1,14 @@
-
-jest.mock('@okta/okta-auth-js');
-
 import { TestBed } from '@angular/core/testing';
-import OktaAuth from '@okta/okta-auth-js';
+import { OktaAuth, TokenResponse, AccessToken, IDToken } from '@okta/okta-auth-js';
 
-import PACKAGE_JSON from '../../package.json';
+jest.mock('@okta/okta-auth-js', () => {
+  // Works and lets you check for constructor calls:
+  return {
+    OktaAuth: jest.fn().mockImplementation(() => {}),
+  };
+});
+
+const PACKAGE_JSON = require('../../package.json');
 
 import {
   OktaAuthModule,
@@ -24,7 +28,7 @@ describe('Angular service', () => {
       issuer: 'https://foo',
       redirectUri: 'https://foo'
     };
-    OktaAuth.mockClear();
+    (OktaAuth as any).mockClear();
     _mockAuthJS = {
       tokenManager: {
         on: jest.fn()
@@ -51,7 +55,7 @@ describe('Angular service', () => {
   }
 
   const createInstance = (params = {}) => {
-    OktaAuth.mockImplementation(() => _mockAuthJS);
+    (OktaAuth as any).mockImplementation(() => _mockAuthJS);
     const injector: unknown = undefined;
     return () => new OktaAuthService(params, injector as Injector);
   };
@@ -139,6 +143,11 @@ describe('Angular service', () => {
     expect(service['oktaAuth'].userAgent.indexOf(`@okta/okta-angular/${PACKAGE_JSON.version}`)).toBeGreaterThan(-1);
   });
 
+  it('Exposes the internal oktaAuth instance', () => {
+    const service:OktaAuthService = createInstance(VALID_CONFIG)();
+    expect(service.oktaAuth).toBeTruthy();
+  });
+
   it('Can create the service via angular injection', () => {
     TestBed.configureTestingModule({
       imports: [
@@ -168,7 +177,7 @@ describe('Angular service', () => {
 
   describe('service methods', () => {
     function createService(config?: object, mockAuthJS = null) {
-      OktaAuth.mockImplementation(() => extendMockAuthJS(mockAuthJS));
+      (OktaAuth as any).mockImplementation(() => extendMockAuthJS(mockAuthJS));
       config = extendConfig(config || {});
       TestBed.configureTestingModule({
         imports: [
@@ -409,13 +418,12 @@ describe('Angular service', () => {
     describe('login', () => {
       const expectedRes = 'sometestresult';
       beforeEach(() => {
-        jest.spyOn(OktaAuthService.prototype, 'loginRedirect').mockReturnValue(expectedRes);
+        jest.spyOn(OktaAuthService.prototype, 'loginRedirect').mockReturnValue(Promise.resolve());
         jest.spyOn(OktaAuthService.prototype, 'setFromUri').mockReturnValue(undefined);
       });
-      it('calls loginRedirect by default', () => {
+      it('calls loginRedirect by default', async () => {
         const service = createService();
-        const res = service.login();
-        expect(res).toBe(expectedRes);
+        await service.login();
         expect(OktaAuthService.prototype.loginRedirect).toHaveBeenCalled();
       });
 
@@ -447,12 +455,12 @@ describe('Angular service', () => {
         expect(OktaAuthService.prototype.setFromUri).toHaveBeenCalledWith(undefined);
       });
 
-      it('Passes "additionalParams" to loginRedirect', () => {
-        jest.spyOn(OktaAuthService.prototype, 'loginRedirect').mockReturnValue(null);
+      it('Passes "additionalParams" to loginRedirect', async () => {
+        jest.spyOn(OktaAuthService.prototype, 'loginRedirect').mockReturnValue(Promise.resolve());
         const service = createService();
         const fromUri = 'https://foo.random';
         const additionalParams = { foo: 'bar', baz: 'biz' };
-        service.login(fromUri, additionalParams);
+        await service.login(fromUri, additionalParams);
         expect(OktaAuthService.prototype.loginRedirect).toHaveBeenCalledWith(undefined, additionalParams);
         expect(OktaAuthService.prototype.setFromUri).toHaveBeenCalledWith(fromUri);
       });
@@ -533,7 +541,7 @@ describe('Angular service', () => {
 
     describe('handleAuthentication', () => {
       let service: OktaAuthService;
-      let response: ParseFromUrlResponse;
+      let response: TokenResponse;
       let isAuthenticated: boolean;
       beforeEach(() => {
         response = {
@@ -560,8 +568,8 @@ describe('Angular service', () => {
       });
 
       it('stores tokens', async () => {
-        const accessToken = { accessToken: 'foo' };
-        const idToken = { idToken: 'bar' };
+        const accessToken = { accessToken: 'foo' } as AccessToken;
+        const idToken = { idToken: 'bar' } as IDToken;
         response.tokens = { accessToken, idToken };
         await service.handleAuthentication();
         expect((service as any).oktaAuth.tokenManager.add).toHaveBeenNthCalledWith(1, 'accessToken', accessToken);

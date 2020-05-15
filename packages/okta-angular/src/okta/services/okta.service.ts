@@ -18,20 +18,20 @@ import {
 } from '@okta/configuration-validation';
 
 import { OKTA_CONFIG, OktaConfig, AuthRequiredFunction } from '../models/okta.config';
-import { UserClaims } from '../models/user-claims';
-import { TokenManager, AccessToken, IDToken } from '../models/token-manager';
+// import { UserClaims } from '../models/user-claims';
+// import { TokenManager, AccessToken, IDToken } from '../models/token-manager';
 
 import packageInfo from '../packageInfo';
 
 /**
  * Import the okta-auth-js library
  */
-import OktaAuth from '@okta/okta-auth-js';
+import { OktaAuth, TokenManager, AccessToken, IDToken, UserClaims } from '@okta/okta-auth-js';
 import { Observable, Observer } from 'rxjs';
 
 @Injectable()
 export class OktaAuthService {
-    private oktaAuth: OktaAuth;
+    oktaAuth: OktaAuth;
     private config: OktaConfig;
     private observers: Observer<boolean>[];
     $authenticationState: Observable<boolean>;
