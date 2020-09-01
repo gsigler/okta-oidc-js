@@ -40,7 +40,7 @@
     ],
     "license": "Apache-2.0",
     "dependencies": {
-        "@okta/configuration-validation": "^0.4.1",
+        "@okta/configuration-validation": "^1.0.0",
         "@okta/okta-auth-js": "^4.0.0",
         "tslib": "^1.9.0"
     },
@@ -76,7 +76,7 @@
         "shelljs": "0.8.3",
         "source-map-loader": "0.2.4",
         "to-string-loader": "1.1.5",
-        "ts-loader": "6.0.1",
+        "ts-loader": "^8.0.3",
         "tsickle": "0.33.0",
         "tslint": "5.16.0",
         "tslint-angular": "3.0.2",
