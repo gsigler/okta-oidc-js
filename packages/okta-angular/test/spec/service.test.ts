@@ -171,7 +171,7 @@ describe('Angular service', () => {
         const service = createService();
         const val = service.getTokenManager();
         expect(val).toBeTruthy();
-        expect(val).toBe(service.oktaAuth.tokenManager);
+        expect(val).toBe(service.tokenManager);
       });
     });
 
