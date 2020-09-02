@@ -1,7 +1,7 @@
 {
     "name": "@okta/okta-angular",
     "private": true,
-    "version": "2.2.0",
+    "version": "3.0.0",
     "description": "Angular support for Okta",
     "main": "./bundles/okta-angular.umd.js",
     "module": "./fesm5/okta-angular.js",
